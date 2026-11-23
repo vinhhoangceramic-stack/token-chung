@@ -109,6 +109,37 @@ class TestPhien(unittest.TestCase):
         with self.assertRaises(ValueError):
             lo.dung_lo("claude-haiku-5-5", [("a", [])], max_tokens=0)
 
+    def test_dinh_dang_va_tat_cache_hoi_thoai(self):
+        k = KhachGia()
+        sch = {"type": "json_schema", "schema": {"type": "object"}}
+        p = Phien("du-an-thu", "claude-haiku-5-5", dinh_dang=sch, effort="low", max_tokens=300,
+                  cache_hoi_thoai=False, client=k)
+        p.goi([{"role": "user", "content": "x"}])
+        yc = k.yeu_cau[0]
+        self.assertEqual(yc["output_config"], {"effort": "low", "format": sch})
+        self.assertNotIn("cache_control", yc)                # không có điểm cache tự động
+        self.assertNotIn("system", yc)
+        self.assertNotIn("tools", yc)
+        self.assertEqual(yc["max_tokens"], 300)
+
+    def test_model_khong_co_gia_khong_lam_hong_loi_goi(self):
+        k = KhachGia()
+        p = Phien("du-an-thu", "model-chua-co-gia", client=k)
+        with self.assertLogs("token_chung", level="ERROR") as cb:
+            tl = p.goi([{"role": "user", "content": "x"}])
+        self.assertEqual(tl.id, "msg_1")                      # lời gọi vẫn trả kết quả
+        self.assertIsNone(self._doc_log()[0]["chi_phi_usd"])
+        self.assertTrue(any("model-chua-co-gia" in d for d in cb.output))
+
+    def test_loi_ghi_log_khong_lam_hong_loi_goi(self):
+        os.environ["TOKEN_CHUNG_LOG"] = self.tmp.name          # là thư mục, không mở như file được
+        k = KhachGia()
+        p = Phien("du-an-thu", "claude-haiku-5-5", client=k)
+        with self.assertLogs("token_chung", level="ERROR"):
+            tl = p.goi([{"role": "user", "content": "x"}])
+        self.assertEqual(tl.id, "msg_1")
+        self.assertIsNone(p.dong_log_cuoi)
+
     def test_lan_max(self):
         d = nhat_ky.ghi_lan_max("du-an-thu")
         self.assertEqual(d["lan"], "max")

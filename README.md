@@ -7,13 +7,13 @@ Lớp bọc dùng chung cho mọi lời gọi Anthropic (Python). Mọi lời g�
 Ghim theo thẻ phiên bản, không cài từ nhánh chính:
 
 ```
-pip install "git+https://github.com/<chu-so-huu>/token-chung@v0.1.0"
+pip install "git+https://github.com/<chu-so-huu>/token-chung@v0.1.1"
 ```
 
 Trong `requirements.txt`:
 
 ```
-token-chung @ git+https://github.com/<chu-so-huu>/token-chung@v0.1.0
+token-chung @ git+https://github.com/<chu-so-huu>/token-chung@v0.1.1
 ```
 
 Khóa API đọc từ biến `ANTHROPIC_API_KEY` trong `.env` của chính ứng dụng (xem `.env.example`). Không đặt khóa ở biến môi trường toàn cục của máy.
@@ -47,6 +47,17 @@ messages = [{"role": "user", "content": "..."}]
 tl = phien.goi(messages)
 messages.append({"role": "assistant", "content": tl.content})
 ```
+
+Lời gọi một lượt, trả JSON theo schema (structured output), nội dung khác nhau mỗi lần:
+
+```python
+phien = Phien("ten-du-an", "claude-haiku-5-5", dinh_dang={"type": "json_schema", "schema": SCHEMA},
+              effort="low", max_tokens=2000, cache_hoi_thoai=False)
+```
+
+`cache_hoi_thoai=False` tắt điểm cache tự động ở đuôi hội thoại: với lời gọi một lượt không có phần tĩnh dùng lại, điểm đó chỉ ghi cache (1,25 lần giá vào) mà không bao giờ được đọc lại.
+
+Lỗi khi tính tiền hoặc ghi log (ví dụ model chưa có trong bảng giá) chỉ được ghi cảnh báo vào logger `token_chung`; lời gọi API vẫn trả kết quả bình thường, `chi_phi_usd` để trống.
 
 Batch (giảm 50%, cộng dồn với cache):
 
