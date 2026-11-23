@@ -1,0 +1,17 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "token-chung"
+version = "0.1.0"
+description = "Lop boc dung chung cho loi goi Anthropic: ghi log usage, tinh tien, giu cache, batch."
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = ["anthropic>=2.8.0"]
+
+[tool.setuptools]
+packages = ["token_chung"]
+
+[tool.setuptools.package-data]
+token_chung = ["gia_model.json"]

@@ -1,0 +1,17 @@
+{
+  "ngay_kiem_chung": "2026-11-23",
+  "nguon": "Bang gia cong khai cua Anthropic",
+  "ghi_chu": "vao_usd, ra_usd, vao_usd_tren_nguong, ra_usd_tren_nguong la USD cho 1 trieu token. Moi khoa bat dau bang he_so_ la HE SO NHAN (khong phai USD), nhan voi gia vao (vao_usd, hoac vao_usd_tren_nguong khi prompt vuot nguong) cua chinh model do. he_so_batch nhan vao tong tien cua request.",
+  "he_so_chung": {
+    "he_so_ghi_cache_5m": 1.25,
+    "he_so_ghi_cache_1h": 2.0,
+    "he_so_batch": 0.5
+  },
+  "model": {
+    "claude-opus-5-5":   {"vao_usd": 4.0,  "ra_usd": 20.0, "he_so_doc_cache": 0.05},
+    "claude-sonnet-5-5": {"vao_usd": 2.0,  "ra_usd": 10.0, "he_so_doc_cache": 0.05},
+    "claude-haiku-5-5":  {"vao_usd": 0.10, "ra_usd": 0.50, "he_so_doc_cache": 0.1,
+                          "nguong_prompt_token": 100000, "vao_usd_tren_nguong": 0.50, "ra_usd_tren_nguong": 2.50},
+    "claude-fable-5-2":  {"vao_usd": 8.0,  "ra_usd": 40.0, "he_so_doc_cache": 0.025}
+  }
+}

@@ -1,0 +1,19 @@
+# Khóa và bí mật
+.env
+.env.*
+!.env.example
+*.key
+*.pem
+
+# Log (log thật nằm ngoài repo, trong thư mục người dùng)
+*.jsonl
+*.log
+
+# Python
+__pycache__/
+*.pyc
+*.egg-info/
+build/
+dist/
+.venv/
+venv/
