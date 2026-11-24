@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import os
+import socket
 from pathlib import Path
 
 # Log ghi cục bộ từng máy, ngoài mọi repo: <thư mục người dùng>/token-chung-log/usage.jsonl
@@ -12,11 +13,18 @@ DUONG_DAN_LOG = Path.home() / "token-chung-log" / "usage.jsonl"
 def duong_dan_log() -> Path:
     return Path(os.environ["TOKEN_CHUNG_LOG"]) if os.environ.get("TOKEN_CHUNG_LOG") else DUONG_DAN_LOG
 
-# Schema log: đúng 12 trường, theo thứ tự này.
+
+def ten_may() -> str:
+    """Tên máy ghi vào log: biến TOKEN_CHUNG_MAY nếu có giá trị, không thì tên máy của hệ điều hành."""
+    return (os.environ.get("TOKEN_CHUNG_MAY") or "").strip() or socket.gethostname()
+
+
+# Schema log: đúng 13 trường, theo thứ tự này. `uoc_tinh` (từ v0.1.2) là true khi chi_phi_usd tính theo
+# giá dự phòng vì model chưa có trong bảng giá; dòng cũ không có trường này thì coi là false.
 TRUONG_LOG = (
     "du_an", "model", "effort", "input_tokens", "cache_creation_input_tokens",
     "cache_read_input_tokens", "output_tokens", "chi_phi_usd", "thoi_diem",
-    "cache_miss_reason", "may", "lan",
+    "cache_miss_reason", "may", "lan", "uoc_tinh",
 )
 
 BETA_CHAN_DOAN_CACHE = "cache-diagnosis-2026-04-07"

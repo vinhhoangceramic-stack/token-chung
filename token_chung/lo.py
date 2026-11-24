@@ -43,15 +43,13 @@ def doc_ket_qua(client, batch_id: str, du_an: str, *, effort: str | None = None)
             try:                                            # lỗi tính tiền/ghi log không làm hỏng việc đọc kết quả
                 m = r.result.message
                 u = gia.tach_usage(m.usage)
-                tien = gia.tinh_chi_phi(m.model, u["input_tokens"], u["ghi_cache_5m"], u["ghi_cache_1h"],
-                                        u["cache_read_input_tokens"], u["output_tokens"], batch=True)
-                if tien is None:
-                    _log.error("token-chung: model %s không có trong gia_model.json, chi_phi_usd để trống", m.model)
+                tien, uoc = gia.tinh_chi_phi_du_phong(m.model, u["input_tokens"], u["ghi_cache_5m"], u["ghi_cache_1h"],
+                                                      u["cache_read_input_tokens"], u["output_tokens"], batch=True)
                 nhat_ky.ghi(du_an=du_an, model=m.model, effort=effort, lan="api",
                             input_tokens=u["input_tokens"],
                             cache_creation_input_tokens=u["cache_creation_input_tokens"],
                             cache_read_input_tokens=u["cache_read_input_tokens"], output_tokens=u["output_tokens"],
-                            chi_phi_usd=tien)
+                            chi_phi_usd=tien, uoc_tinh=uoc)
             except Exception:                               # noqa: BLE001
                 _log.exception("token-chung: không ghi được log usage cho %s", r.custom_id)
         yield r

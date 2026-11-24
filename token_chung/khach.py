@@ -144,17 +144,16 @@ class Phien:
             u = gia.tach_usage(tl.usage)
             chan_doan = getattr(tl, "diagnostics", None)
             ly_do = getattr(getattr(chan_doan, "cache_miss_reason", None), "type", None)
-            tien = None
+            tien, uoc = None, False
             if self.lan != "max":
-                tien = gia.tinh_chi_phi(self.model, u["input_tokens"], u["ghi_cache_5m"], u["ghi_cache_1h"],
-                                        u["cache_read_input_tokens"], u["output_tokens"])
-                if tien is None:
-                    _log.error("token-chung: model %s không có trong gia_model.json, chi_phi_usd để trống", self.model)
+                tien, uoc = gia.tinh_chi_phi_du_phong(self.model, u["input_tokens"], u["ghi_cache_5m"], u["ghi_cache_1h"],
+                                                      u["cache_read_input_tokens"], u["output_tokens"])
             return nhat_ky.ghi(du_an=self.du_an, model=self.model, effort=effort, lan=self.lan,
                                input_tokens=u["input_tokens"],
                                cache_creation_input_tokens=u["cache_creation_input_tokens"],
                                cache_read_input_tokens=u["cache_read_input_tokens"],
-                               output_tokens=u["output_tokens"], chi_phi_usd=tien, cache_miss_reason=ly_do)
+                               output_tokens=u["output_tokens"], chi_phi_usd=tien, cache_miss_reason=ly_do,
+                               uoc_tinh=uoc)
         except Exception:                                   # noqa: BLE001 - log không được làm hỏng lời gọi
             _log.exception("token-chung: không ghi được log usage")
             return None

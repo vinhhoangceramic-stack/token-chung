@@ -4,6 +4,7 @@ import os
 import tempfile
 import unittest
 from types import SimpleNamespace as NS
+from unittest import mock
 
 from token_chung import Phien, chon_ttl, lo, nhat_ky, tin_nhan_doi_effort
 from token_chung import cau_hinh
@@ -122,14 +123,52 @@ class TestPhien(unittest.TestCase):
         self.assertNotIn("tools", yc)
         self.assertEqual(yc["max_tokens"], 300)
 
-    def test_model_khong_co_gia_khong_lam_hong_loi_goi(self):
+    def test_model_khong_co_gia_tinh_gia_du_phong_va_khong_lam_hong_loi_goi(self):
         k = KhachGia()
         p = Phien("du-an-thu", "model-chua-co-gia", client=k)
-        with self.assertLogs("token_chung", level="ERROR") as cb:
+        with self.assertLogs("token_chung", level="WARNING") as cb:
             tl = p.goi([{"role": "user", "content": "x"}])
         self.assertEqual(tl.id, "msg_1")                      # lời gọi vẫn trả kết quả
-        self.assertIsNone(self._doc_log()[0]["chi_phi_usd"])
-        self.assertTrue(any("model-chua-co-gia" in d for d in cb.output))
+        dong = self._doc_log()[0]
+        # 100*8 + 1000*10 + 5000*0.2 + 200*40 = 800 + 10000 + 1000 + 8000 = 19800 / 1e6
+        self.assertAlmostEqual(dong["chi_phi_usd"], 0.0198, places=8)
+        self.assertIs(dong["uoc_tinh"], True)
+        self.assertTrue(any("model-chua-co-gia" in d and "GIÁ DỰ PHÒNG" in d for d in cb.output))
+
+    def test_model_co_gia_ghi_13_khoa_uoc_tinh_false(self):
+        k = KhachGia()
+        Phien("du-an-thu", "claude-opus-5-5", client=k).goi([{"role": "user", "content": "x"}])
+        dong = self._doc_log()[0]
+        self.assertEqual(len(dong), 13)
+        self.assertEqual(list(dong)[-1], "uoc_tinh")
+        self.assertIs(dong["uoc_tinh"], False)
+
+    def test_loi_tinh_tien_khong_lam_hong_loi_goi(self):
+        k = KhachGia()
+        p = Phien("du-an-thu", "claude-opus-5-5", client=k)
+        with mock.patch("token_chung.gia.bang_gia", side_effect=RuntimeError("bang gia hong")):
+            with self.assertLogs("token_chung", level="ERROR"):
+                tl = p.goi([{"role": "user", "content": "x"}])
+        self.assertEqual(tl.id, "msg_1")
+        self.assertIsNone(p.dong_log_cuoi)
+
+    def _lo_gia(self, model):
+        usage = NS(input_tokens=100, cache_creation_input_tokens=1000, cache_read_input_tokens=5000,
+                   output_tokens=200, cache_creation=NS(ephemeral_5m_input_tokens=1000, ephemeral_1h_input_tokens=0))
+        kq = NS(custom_id="v1", result=NS(type="succeeded", message=NS(model=model, usage=usage)))
+        return NS(messages=NS(batches=NS(results=lambda _id: iter([kq]))))
+
+    def test_lo_model_la_gia_du_phong_nhan_he_so_batch(self):
+        list(lo.doc_ket_qua(self._lo_gia("model-chua-co-gia"), "b1", "du-an-thu"))
+        dong = self._doc_log()[0]
+        self.assertAlmostEqual(dong["chi_phi_usd"], 0.0099, places=8)     # 0.0198 x 0.5
+        self.assertIs(dong["uoc_tinh"], True)
+
+    def test_lo_model_co_gia_uoc_tinh_false(self):
+        list(lo.doc_ket_qua(self._lo_gia("claude-opus-5-5"), "b1", "du-an-thu"))
+        dong = self._doc_log()[0]
+        self.assertAlmostEqual(dong["chi_phi_usd"], 0.0052, places=8)     # 10400 / 1e6 x 0.5
+        self.assertIs(dong["uoc_tinh"], False)
 
     def test_loi_ghi_log_khong_lam_hong_loi_goi(self):
         os.environ["TOKEN_CHUNG_LOG"] = self.tmp.name          # là thư mục, không mở như file được

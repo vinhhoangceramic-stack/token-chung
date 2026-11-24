@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "token-chung"
-version = "0.1.1"
+version = "0.1.2"
 description = "Lop boc dung chung cho loi goi Anthropic: ghi log usage, tinh tien, giu cache, batch."
 readme = "README.md"
 requires-python = ">=3.10"
